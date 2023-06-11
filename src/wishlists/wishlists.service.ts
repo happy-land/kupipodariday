@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
@@ -22,33 +23,22 @@ export class WishlistsService {
   async create(user: User, createWishlistDto: CreateWishlistDto) {
     const wishes = await this.wishesService.findAll({});
 
-    const items = createWishlistDto.itemsId.map((item) => {
+    const filteredWishes = createWishlistDto.itemsId.map((item) => {
       return wishes.find((wish) => wish.id === item);
     });
-
-    // return this.wishlistRepository.save({
-    //   ...createWishlistDto,
-    //   owner: user,
-    //   items,
-    // });
 
     const newWishList = this.wishlistRepository.create({
       ...createWishlistDto,
       owner: user,
-      items: items,
+      items: filteredWishes,
     });
-
-    console.log(newWishList, ' <<< newWishList');
 
     return this.wishlistRepository.save(newWishList);
   }
 
   async findAll() {
     const wishLists = await this.findMany({
-      relations: {
-        owner: true,
-        items: true,
-      },
+      relations: ['owner', 'items'],
     });
 
     wishLists.forEach((wishList) => {
@@ -85,11 +75,14 @@ export class WishlistsService {
   ) {
     const list = await this.wishlistRepository.findOne({
       where: { id: id },
-      relations: {
-        owner: true,
-        items: true,
-      },
+      relations: ['owner', 'items'],
     });
+
+    if (list.owner.id !== userId) {
+      throw new BadRequestException(
+        'Нельзя редактировать коллекцию другого пользователя',
+      );
+    }
 
     await this.wishlistRepository.update(id, updateWishlistDto);
     const updatedList = await this.findOneByRelations(id);
@@ -120,10 +113,7 @@ export class WishlistsService {
   findOneByRelations(id: number) {
     return this.wishlistRepository.findOne({
       where: { id: id },
-      relations: {
-        owner: true,
-        items: true,
-      },
+      relations: ['owner', 'items'],
     });
   }
 }

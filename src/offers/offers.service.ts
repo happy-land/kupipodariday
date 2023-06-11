@@ -16,7 +16,6 @@ export class OffersService {
   ) {}
 
   async create(user: User, createOfferDto: CreateOfferDto) {
-    console.log(user, ' << this is user');
     const wish = await this.wishesService.findOne({
       where: { id: createOfferDto.itemId },
       relations: {
