@@ -9,9 +9,13 @@ import { Wishlist } from './wishlists/entities/wishlist.entity';
 import { WishesModule } from './wishes/wishes.module';
 import { WishlistsModule } from './wishlists/wishlists.module';
 import { OffersModule } from './offers/offers.module';
+import { AuthModule } from './auth/auth.module';
+import { ConfigModule } from '@nestjs/config';
+import configuration from './configuration';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({ isGlobal: true, load: [configuration] }),
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: 'localhost',
@@ -19,6 +23,7 @@ import { OffersModule } from './offers/offers.module';
       username: 'student',
       password: 'student',
       database: 'kupipodariday',
+      schema: 'kupipodariday',
       entities: [User, Offer, Wish, Wishlist],
       synchronize: true,
     }),
@@ -26,6 +31,7 @@ import { OffersModule } from './offers/offers.module';
     WishesModule,
     WishlistsModule,
     OffersModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [],
