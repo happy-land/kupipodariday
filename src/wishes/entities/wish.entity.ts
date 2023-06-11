@@ -40,6 +40,7 @@ export class Wish {
   price: number;
 
   @Column({
+    default: 1,
     scale: 0,
   })
   raised: number;

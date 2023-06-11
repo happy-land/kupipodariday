@@ -21,7 +21,7 @@ export class Offer {
   updatedAt: Date;
 
   @ManyToOne(() => User, (user) => user.offers)
-  user: number[];
+  user: User;
 
   @ManyToOne(() => Wish, (wish) => wish.offers)
   item: Wish;
