@@ -41,11 +41,6 @@ export class WishesController {
     return this.wishesService.getById(id);
   }
 
-  @Get()
-  findAll() {
-    return this.wishesService.findAll();
-  }
-
   @Patch(':id')
   update(
     @Param('id') id: number,

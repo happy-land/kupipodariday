@@ -1,4 +1,5 @@
 import {
+  ConflictException,
   ForbiddenException,
   Injectable,
   NotFoundException,
@@ -6,7 +7,7 @@ import {
 import { CreateWishDto } from './dto/create-wish.dto';
 import { UpdateWishDto } from './dto/update-wish.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { FindManyOptions, Repository } from 'typeorm';
 import { Wish } from './entities/wish.entity';
 import { User } from 'src/users/entities/user.entity';
 
@@ -40,7 +41,6 @@ export class WishesService {
     });
 
     // wishes.forEach();
-    console.log(wishes, ' <<<<< <<<<< <<<< wishes');
 
     // TODO: дописать метод
 
@@ -103,8 +103,8 @@ export class WishesService {
     return wish;
   }
 
-  findAll() {
-    return `This action returns all wishes`;
+  findAll(query: FindManyOptions<Wish>) {
+    return this.wishesRepository.find(query);
   }
 
   findOne(id: number) {
@@ -122,6 +122,13 @@ export class WishesService {
     if (userId !== wish.owner.id) {
       throw new ForbiddenException('Нельзя редактировать подарки других');
     }
+
+    if (wish.raised !== 0 && wish.price != undefined) {
+      throw new ConflictException(
+        'Обновление запрещено, поскольку идёт сбор средств',
+      );
+    }
+
     return this.wishesRepository.update(id, updateWishDto);
   }
 

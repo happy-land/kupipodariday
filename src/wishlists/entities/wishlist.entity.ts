@@ -27,9 +27,9 @@ export class Wishlist {
   @Length(1, 250)
   name: string;
 
-  @Column()
-  @Length(0, 1500)
-  description: string;
+  // @Column()
+  // @Length(0, 1500)
+  // description: string;
 
   @Column()
   image: string;
