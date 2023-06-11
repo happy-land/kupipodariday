@@ -5,6 +5,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { FindOneOptions, Repository } from 'typeorm';
 import { HashService } from 'src/hash/hash.service';
+import { FindUsersDto } from './dto/find-user.dto';
 
 @Injectable()
 export class UsersService {
@@ -17,29 +18,36 @@ export class UsersService {
   async create(createUserDto: CreateUserDto): Promise<User> {
     const { email, username } = createUserDto;
 
-    console.log(createUserDto, ' < createUserDto');
-
-    const existUser = await this.usersRepository.find({
-      where: [{ email: email }, { username: username }],
+    const user = await this.usersRepository.find({
+      where: [{ username: username }, { email: email }],
     });
 
-    if (existUser.length !== 0) {
-      throw new ConflictException(
-        'Пользователь с таким email или username уже зарегистрирован',
-      );
+    if (user.length !== 0) {
+      throw new ConflictException('Пользователь уже зарегистрирован');
     }
 
     const hash = await this.hashService.hash(createUserDto.password);
-    const newUser = this.usersRepository.create({
+    const createdUser = this.usersRepository.create({
       ...createUserDto,
       password: hash,
     });
 
-    return this.usersRepository.save(newUser);
+    return this.usersRepository.save(createdUser);
+  }
+
+  async findUser(findUserDto: FindUsersDto) {
+    const user = await this.findMany(findUserDto.query);
+    return user;
   }
 
   async findOne(query: FindOneOptions<User>): Promise<User> {
     return this.usersRepository.findOne(query);
+  }
+
+  async findMany(query: string) {
+    return this.usersRepository.find({
+      where: [{ username: query }, { email: query }],
+    });
   }
 
   async findByUsername(username: string) {
@@ -48,7 +56,6 @@ export class UsersService {
 
   async findAll() {
     return await this.usersRepository.find();
-    // return `This action returns all users!`;
   }
 
   async update(id: number, updateUserDto: UpdateUserDto) {
@@ -56,29 +63,27 @@ export class UsersService {
   }
 
   async getMyWishes(id: number) {
-    const user = await this.findOne({
+    const query = {
       where: { id: id },
       relations: {
         wishes: {
-          owner: true,
           offers: {
+            user: { wishes: true, wishlists: true, offers: true },
             item: { owner: true, offers: true },
-            user: { wishes: true, offers: true, wishlists: true },
           },
+          owner: true,
         },
       },
-    });
+    };
+    const user = await this.findOne(query);
 
     const userWishes = user.wishes.filter((wish) => {
-      const sum = wish.offers.map((offer) => Number(offer.amount));
-      wish.raised = sum.reduce(function (acc, val) {
-        return acc + val;
+      const amountArr = wish.offers.map((offer) => offer.amount);
+      wish.raised = amountArr.reduce((prev, current) => {
+        return prev + current;
       }, 0);
-      wish.price = Number(wish.price);
       return wish;
     });
-
-    // console.log(userWishes, '<<< userWishes');
 
     return userWishes;
   }

@@ -37,7 +37,6 @@ export class WishesController {
 
   @Get(':id')
   getById(@Param('id') id: number) {
-    console.log('getById');
     return this.wishesService.getById(id);
   }
 
