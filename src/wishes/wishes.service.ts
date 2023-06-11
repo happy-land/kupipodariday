@@ -7,7 +7,7 @@ import {
 import { CreateWishDto } from './dto/create-wish.dto';
 import { UpdateWishDto } from './dto/update-wish.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FindManyOptions, Repository } from 'typeorm';
+import { FindManyOptions, FindOneOptions, Repository } from 'typeorm';
 import { Wish } from './entities/wish.entity';
 import { User } from 'src/users/entities/user.entity';
 
@@ -19,11 +19,11 @@ export class WishesService {
   ) {}
 
   create(user: User, createWishDto: CreateWishDto) {
-    const newWish = this.wishesRepository.create({
+    const wish = this.wishesRepository.create({
       ...createWishDto,
       owner: user,
     });
-    return this.wishesRepository.save(newWish);
+    return this.wishesRepository.save(wish);
   }
 
   async getLast() {
@@ -40,11 +40,9 @@ export class WishesService {
       take: 40,
     });
 
-    // wishes.forEach();
+    const modifiedWishes = this.modifyWishes(wishes);
 
-    // TODO: дописать метод
-
-    return wishes;
+    return modifiedWishes;
   }
 
   async getTop() {
@@ -68,18 +66,9 @@ export class WishesService {
       return wish;
     });
 
-    // copiedWishes.forEach((wish) => {
-    //   const amounts = wish.offers.map((offer) => Number(offer.amount));
+    const modifiedWishes = this.modifyWishes(copiedWishes);
 
-    //   wish.raised = amounts.reduce(function (acc, val) {
-    //     return acc + val;
-    //   }, 0);
-
-    //   delete wish.owner.password;
-    //   delete wish.owner.email;
-    // });
-
-    return copiedWishes;
+    return modifiedWishes;
   }
 
   async getById(id: number) {
@@ -107,8 +96,8 @@ export class WishesService {
     return this.wishesRepository.find(query);
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} wish`;
+  findOne(query: FindOneOptions<Wish>) {
+    return this.wishesRepository.findOne(query);
   }
 
   async update(id: number, updateWishDto: UpdateWishDto, userId: number) {
@@ -116,6 +105,7 @@ export class WishesService {
       where: [{ id: id }],
       relations: {
         owner: true,
+        offers: true,
       },
     });
 
@@ -123,7 +113,7 @@ export class WishesService {
       throw new ForbiddenException('Нельзя редактировать подарки других');
     }
 
-    if (wish.raised !== 0 && wish.price != undefined) {
+    if (wish.raised !== 0 && wish.offers.length !== 0) {
       throw new ConflictException(
         'Обновление запрещено, поскольку идёт сбор средств',
       );
@@ -179,5 +169,19 @@ export class WishesService {
     await this.update(wishToCopy.id, wishToCopy, wishToCopy.owner.id);
 
     return {};
+  }
+
+  modifyWishes(wishes: Wish[]) {
+    wishes.forEach((wish) => {
+      const amountArr = wish.offers.map((offer) => offer.amount);
+
+      wish.raised = amountArr.reduce((prev, current) => {
+        return prev + current;
+      }, 0);
+
+      delete wish.owner.email;
+      delete wish.owner.password;
+    });
+    return wishes;
   }
 }
