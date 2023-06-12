@@ -1,4 +1,4 @@
-import { Length } from 'class-validator';
+import { IsDate, IsString, IsUrl, Length } from 'class-validator';
 import { User } from 'src/users/entities/user.entity';
 import { Wish } from 'src/wishes/entities/wish.entity';
 import {
@@ -18,20 +18,21 @@ export class Wishlist {
   id: number;
 
   @CreateDateColumn()
+  @IsDate()
   createdAt: Date;
 
   @UpdateDateColumn()
+  @IsDate()
   updatedAt: Date;
 
   @Column()
   @Length(1, 250)
+  @IsString()
   name: string;
 
-  // @Column()
-  // @Length(0, 1500)
-  // description: string;
-
   @Column()
+  @IsString()
+  @IsUrl()
   image: string;
 
   @ManyToMany(() => Wish)
