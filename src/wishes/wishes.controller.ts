@@ -15,15 +15,9 @@ import { UpdateWishDto } from './dto/update-wish.dto';
 import { RequestUser } from 'src/utils/types';
 import { JwtGuard } from 'src/auth/guards/jwt-auth.guard';
 
-@UseGuards(JwtGuard)
 @Controller('wishes')
 export class WishesController {
   constructor(private readonly wishesService: WishesService) {}
-
-  @Post()
-  create(@Req() req: RequestUser, @Body() createWishDto: CreateWishDto) {
-    return this.wishesService.create(req.user, createWishDto);
-  }
 
   @Get('last')
   getLast() {
@@ -33,6 +27,12 @@ export class WishesController {
   @Get('top')
   getTop() {
     return this.wishesService.getTop();
+  }
+
+  @UseGuards(JwtGuard)
+  @Post()
+  create(@Req() req: RequestUser, @Body() createWishDto: CreateWishDto) {
+    return this.wishesService.create(req.user, createWishDto);
   }
 
   @Get(':id')

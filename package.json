@@ -1,8 +1,8 @@
 {
   "name": "kupipodariday",
   "version": "0.0.1",
-  "description": "",
-  "author": "",
+  "description": "Wishes come true with our Kupipodariday service",
+  "author": "Ruslan Kulish",
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
