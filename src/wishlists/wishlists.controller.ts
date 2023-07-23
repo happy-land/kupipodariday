@@ -31,6 +31,7 @@ export class WishlistsController {
     @Body() createWishlistDto: CreateWishlistDto,
     @Req() req: RequestUser,
   ) {
+    console.log(req.user, '>>> req.user');
     return this.wishlistsService.create(req.user, createWishlistDto);
   }
 
@@ -48,8 +49,9 @@ export class WishlistsController {
     return this.wishlistsService.update(id, req.user.id, updateWishlistDto);
   }
 
+  @UseGuards(JwtGuard)
   @Delete(':id')
-  remove(@Param('id', ParseIntPipe) id: number, @Req() req: RequestUser) {
+  async remove(@Param('id') id: number, @Req() req: RequestUser) {
     return this.wishlistsService.remove(id, req.user.id);
   }
 }

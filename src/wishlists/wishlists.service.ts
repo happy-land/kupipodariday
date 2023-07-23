@@ -94,6 +94,7 @@ export class WishlistsService {
   }
 
   async remove(id: number, userId: number) {
+    console.log(id, '---wishlistsService');
     const list = await this.findOneByRelations(id);
 
     if (!list) {
